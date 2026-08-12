@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: create-manifest
+        name: Create Manifest
+        entry: ./create_manifest.sh
+        language: system
+        types: [file]
+        always_run: true

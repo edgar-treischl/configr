@@ -1,0 +1,14 @@
+# The Docker image
+image: gitlab.lrz.de:5005/edgar-treischl/configr/r-dev:latest
+
+before_script:
+  - R -e "remotes::install_deps(dependencies = TRUE)"
+
+pages:
+  script:
+    - R -e "pkgdown::build_site()"
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH

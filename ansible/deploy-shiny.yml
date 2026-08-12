@@ -1,0 +1,54 @@
+- name: Deploy R Shiny App on DigitalOcean
+  hosts: shiny-vm
+  become: true
+
+  vars:
+    registry_url: registry.gitlab.com
+    registry_username: "{{ lookup('env', 'CI_REGISTRY_USER') }}"
+    registry_password: "{{ lookup('env', 'CI_REGISTRY_PASSWORD') }}"
+    docker_image: registry.gitlab.com/your-namespace/your-project:latest
+
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker is running
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Install pip (needed for docker modules)
+      apt:
+        name: python3-pip
+        state: present
+
+    - name: Install Docker SDK for Python
+      pip:
+        name: docker
+        executable: pip3
+
+    - name: Log in to GitLab Container Registry
+      docker_login:
+        registry_url: "{{ registry_url }}"
+        username: "{{ registry_username }}"
+        password: "{{ registry_password }}"
+
+    - name: Pull the Docker image
+      docker_image:
+        name: "{{ docker_image }}"
+        source: pull
+
+    - name: Force re-deploy: recreate container with latest image
+      docker_container:
+        name: shiny-app
+        image: "{{ docker_image }}"
+        state: started
+        restart_policy: always
+        recreate: yes
+        pull: yes
+        ports:
+          - "3838:3838"

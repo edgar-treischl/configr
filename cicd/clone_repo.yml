@@ -1,0 +1,34 @@
+image: gitlab.lrz.de:5005/edgar-treischl/configr/r-dev:latest 
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_DEPTH: 1
+  RENV_PATHS_ROOT: ~/.cache/R/renv
+
+cache:
+  key: renv-cache
+  paths:
+    - ~/.cache/R/renv
+
+stages:
+  - setup
+  - test
+  
+#Insert GITLAB_PAT as CI/CD Variable; CI_JOB_TOKEN if the same group
+clone_dependency:
+  stage: setup
+  script:
+    - echo "Cloning private R package from GitLab using GITLAB_PAT..."
+    - git clone https://oauth2:${GITLAB_PAT}@gitlab.lrz.de/edgar-treischl/AmtSchulGit.git AmtSchulGit
+    #- echo "Restoring renv environment..."
+    #- Rscript -e 'pak::pkg_install("renv"); renv::restore()'
+    - echo "Installing external package..."
+    - Rscript -e 'pak::local_install("AmtSchulGit")'
+
+check_package:
+  stage: test
+  script:
+    - echo "Running package checks..."
+    - Rscript -e 'devtools::check()'
+  dependencies:
+    - clone_dependency

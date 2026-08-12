@@ -1,0 +1,29 @@
+# This GitLab CI/CD configuration file builds a Docker image 
+
+stages:
+  - build
+
+variables:
+  DOCKER_REGISTRY: gitlab.lrz.de:5005
+  PROJECT_PATH: $CI_PROJECT_PATH
+  IMAGE_NAME: r-myproject        # Change this per project
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_TLS_CERTDIR: ""
+
+build_r_image:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:dind
+  before_script:
+    - apk add --no-cache bash git
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+  script:
+    - export PROJECT_PATH_LOWER=$(echo "$PROJECT_PATH" | tr '[:upper:]' '[:lower:]')
+    - echo "Building Docker image: $DOCKER_REGISTRY/$PROJECT_PATH_LOWER/$IMAGE_NAME:latest"
+    - docker build -t $DOCKER_REGISTRY/$PROJECT_PATH_LOWER/$IMAGE_NAME:latest .
+    - docker push $DOCKER_REGISTRY/$PROJECT_PATH_LOWER/$IMAGE_NAME:latest
+  rules:
+    - changes:
+        - Dockerfile
+        - R/**

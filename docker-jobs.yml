@@ -1,0 +1,68 @@
+.build_template: &build_template
+  image: docker:24.0.5
+  services:
+    - docker:dind
+  before_script:
+    - apk add --no-cache bash
+    - apk add --no-cache git
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    
+.build_docker_template: &build_docker_template
+  stage: build
+  <<: *build_template
+  script:
+    - export PROJECT_PATH_LOWER=$(echo "$PROJECT_PATH" | tr '[:upper:]' '[:lower:]')
+    - docker build -t $DOCKER_REGISTRY/$PROJECT_PATH_LOWER/${IMAGE_NAME}:latest ${CONTEXT_DIR}
+    - docker push $DOCKER_REGISTRY/$PROJECT_PATH_LOWER/${IMAGE_NAME}:latest
+
+build_r_reporting:
+  <<: *build_docker_template
+  variables:
+    IMAGE_NAME: "r-reportmaster"
+    CONTEXT_DIR: "r-reportmaster"
+  rules:
+    - changes:
+        - r-reportmaster/**
+
+build_r_shiny:
+  <<: *build_docker_template
+  variables:
+    IMAGE_NAME: "r-shiny"
+    CONTEXT_DIR: "docker/r-shiny"
+  rules:
+    - changes:
+        - docker/r-shiny/**
+
+build_r_dev:
+  <<: *build_docker_template
+  variables:
+    IMAGE_NAME: "r-dev"
+    CONTEXT_DIR: "docker/r-dev"
+  rules:
+    - changes:
+        - docker/r-dev/**
+
+build_r_quarto:
+  <<: *build_docker_template
+  variables:
+    IMAGE_NAME: "r-quarto"
+    CONTEXT_DIR: "docker/r-quarto"
+  rules:
+    - changes:
+        - docker/r-quarto/**
+
+build_amtschulverse:
+  stage: build
+  <<: *build_template
+  before_script:
+    - apk add --no-cache bash git
+    - git clone https://oauth2:${edgarToken}@gitlab.lrz.de/edgar-treischl/AmtSchulGit.git docker/amtschulverse/AmtSchulGit
+    - git clone https://oauth2:${edgarToken}@gitlab.lrz.de/qa1/AmtSchulBSR.git docker/amtschulverse/AmtSchulBSR
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+  script:
+    - export PROJECT_PATH_LOWER=$(echo "$PROJECT_PATH" | tr '[:upper:]' '[:lower:]')
+    - docker build -t $DOCKER_REGISTRY/$PROJECT_PATH_LOWER/amtschulverse:latest docker/amtschulverse
+    - docker push $DOCKER_REGISTRY/$PROJECT_PATH_LOWER/amtschulverse:latest
+  rules:
+    - changes:
+        - docker/amtschulverse/**

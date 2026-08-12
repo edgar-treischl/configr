@@ -1,0 +1,11 @@
+#!/bin/sh
+echo "⏳ Running R script to update manifest.json..."
+
+Rscript util/create_manifest.R
+
+if ! git diff --quiet -- manifest.json; then
+  echo "📝 manifest.json updated; adding to commit..."
+  git add manifest.json
+else
+  echo "✅ manifest.json is up-to-date."
+fi
