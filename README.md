@@ -9,15 +9,14 @@
 
 <img src="logo.png" align="right" width="225"/>
 
-*Configr* is a repository for our development stack, designed to
+*Configr* is a repository for a development stack, designed to
 streamline and standardize the setup of projects. It provides a curated
-collection of reusable configuration files (Ansible, Bash, Docker, CI/CD
+collection of reusable configuration files (Ansible, Bash, CI/CD
 templates, etc.) that can be easily integrated into projects, ensuring
 consistency and efficiency across the board while reducing the urge to
-invent the same wheel. Furthermore, it is a central place for pre-built
-Docker images that can be pulled and used in development environments,
-eliminating the need and hassle to build images them from scratch.
-Finally, this repository is accompanied by it own command-line
+invent the same wheel.
+
+Please note, this repository is accompanied by it own command-line
 interface.
 
 > “The right tool, in the right place, for the right job.”
@@ -80,8 +79,3 @@ jsonlite::fromJSON("manifest.json")
 #>  [9] "makefiles/make_quarto.mk"        "makefiles/make_R.mk"
 ```
 
-## Cooperation
-
-Issues, pull requests, any suggestions are welcome — we’re forging this
-stack together. Read also the Docker [**overview**](docs/docker.qmd)
-page if you want to create and share a prebuilt image *configr*.
