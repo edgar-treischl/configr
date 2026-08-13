@@ -1,0 +1,52 @@
+FROM rocker/r-ver:4.5.3
+
+ARG QUARTO_VERSION=1.10.18
+
+# Docker automatically provides TARGETARCH:
+#   amd64 -> x86_64
+#   arm64 -> aarch64
+ARG TARGETARCH
+
+# System dependencies required by R packages and Quarto
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        wget \
+        tar \
+        libudunits2-0 \
+        libudunits2-dev \
+        libgdal-dev \
+        libgeos-dev \
+        libproj-dev \
+        libsqlite3-dev \
+        libuv1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Quarto from the official tarball.
+# This avoids dpkg/apt dependency/configuration issues.
+RUN set -eux; \
+    case "${TARGETARCH}" in \
+        amd64) QUARTO_ARCH="amd64" ;; \
+        arm64) QUARTO_ARCH="arm64" ;; \
+        *) echo "Unsupported architecture: ${TARGETARCH}"; exit 1 ;; \
+    esac; \
+    wget -q \
+        "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-${QUARTO_ARCH}.tar.gz" \
+        -O /tmp/quarto.tar.gz; \
+    mkdir -p /opt/quarto; \
+    tar -xzf /tmp/quarto.tar.gz \
+        --strip-components=1 \
+        -C /opt/quarto; \
+    ln -s /opt/quarto/bin/quarto /usr/local/bin/quarto; \
+    rm -f /tmp/quarto.tar.gz
+
+# Install R package manager used by the CI pipeline
+RUN R --vanilla --quiet --slave -e "install.packages('remotes', repos='https://cloud.r-project.org')" && \
+    R --vanilla --quiet --slave -e "packageVersion('remotes')" && \
+    quarto --version
+
+# Verify key binaries are available
+RUN set -eux; \
+    which quarto; \
+    which R; \
+    test -f /opt/quarto/bin/quarto
