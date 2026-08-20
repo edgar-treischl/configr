@@ -1,0 +1,23 @@
+stages:
+  - build
+  #- deploy
+
+variables:
+  DOCKER_REGISTRY: gitlab.lrz.de:5005
+  PROJECT_PATH: $CI_PROJECT_PATH
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_TLS_CERTDIR: ""
+
+include:
+  - local: 'docker-jobs.yml'
+
+# pages:
+#   image: rocker/verse:latest
+#   stage: deploy
+#   script:
+#     - quarto render
+#   artifacts:
+#     paths:
+#       - public
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == "main"'

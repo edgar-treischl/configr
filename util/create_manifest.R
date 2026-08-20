@@ -7,7 +7,7 @@
 #' @export
 #'
 create_manifest <- function(
-    folders = c("ansible", "cicd","docker", "makefiles", "python", "r", "shell"),
+    folders = c("ansible", "cicd","docker",  "gitlab", "makefiles", "python", "r", "shell"),
     output = "manifest.json"
 ) {
   files <- unlist(lapply(folders, function(folder) {
